@@ -1,0 +1,55 @@
+name: Build and Release
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build release
+        run: cargo build --release --verbose
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: htbox-release
+          path: target/release/htbox
+          retention-days: 30
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: htbox-release
+          path: ./dist
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ./dist/htbox
+          generate_release_notes: true
+          name: htbox latest build
+          body: |
+            自动构建版本
+            
+            Commit: ${{ github.sha }}
+            作者: ${{ github.actor }}
+            
+            ### 功能
+            - 服务管理 (daemon/onetime)
+            - 快捷命令管理
+            - systemd/cron 后端自动切换
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
