@@ -15,14 +15,17 @@ jobs:
       - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Build release
-        run: cargo build --release --verbose
+      - name: Add musl target
+        run: rustup target add x86_64-unknown-linux-musl
+
+      - name: Build release (static)
+        run: cargo build --release --target x86_64-unknown-linux-musl
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: htbox-release
-          path: target/release/htbox
+          path: target/x86_64-unknown-linux-musl/release/htbox
           retention-days: 30
 
   release:
@@ -42,7 +45,7 @@ jobs:
           generate_release_notes: true
           name: htbox latest build
           body: |
-            自动构建版本
+            自动构建版本 (静态链接)
             
             Commit: ${{ github.sha }}
             作者: ${{ github.actor }}
@@ -51,5 +54,9 @@ jobs:
             - 服务管理 (daemon/onetime)
             - 快捷命令管理
             - systemd/cron 后端自动切换
+            
+            ### 兼容性
+            - 静态链接，无需 glibc
+            - 可在任意 Linux 环境运行
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
