@@ -21,6 +21,9 @@ pub trait ServiceBackend: Send + Sync {
     fn disable(&self, service_name: &str) -> Result<(), Box<dyn std::error::Error>>;
     fn status(&self, service_name: &str) -> Result<ServiceStatus, Box<dyn std::error::Error>>;
     fn is_enabled(&self, service_name: &str) -> Result<bool, Box<dyn std::error::Error>>;
+    fn install_unit(&self, _service_name: &str) -> Result<(), Box<dyn std::error::Error>> {
+        Ok(())
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -40,7 +43,7 @@ pub fn detect() -> Backend {
 fn detect_impl() -> Result<Backend, Box<dyn std::error::Error>> {
     use crate::config::Config;
     let config = Config::load()?;
-    
+
     if let Some(backend_config) = config.backend.as_ref() {
         if let Some(force) = backend_config.force.as_ref() {
             match force.as_str() {
@@ -50,30 +53,36 @@ fn detect_impl() -> Result<Backend, Box<dyn std::error::Error>> {
             }
         }
     }
-    
+
     if !Path::new("/run/systemd/system").exists() {
         return Ok(Backend::Cron);
     }
-    
+
     if std::process::Command::new("systemctl")
         .arg("--version")
         .output()
-        .is_err() {
+        .is_err()
+    {
         return Ok(Backend::Cron);
     }
-    
+
     let output = std::process::Command::new("systemctl")
-        .args(["list-units", "--type=service", "--state=running", "--no-pager"])
+        .args([
+            "list-units",
+            "--type=service",
+            "--state=running",
+            "--no-pager",
+        ])
         .output()?;
-    
+
     if !output.status.success() || output.stdout.is_empty() {
         return Ok(Backend::Cron);
     }
-    
+
     if is_container_environment() {
         return Ok(Backend::Cron);
     }
-    
+
     Ok(Backend::Systemd)
 }
 
@@ -84,7 +93,7 @@ fn is_container_environment() -> bool {
             return true;
         }
     }
-    
+
     Path::new("/.dockerenv").exists()
 }
 
@@ -95,8 +104,8 @@ pub fn create_backend() -> Box<dyn ServiceBackend> {
     }
 }
 
-pub mod systemd;
 pub mod cron;
+pub mod systemd;
 
-use systemd::SystemdBackend;
 use cron::CronBackend;
+use systemd::SystemdBackend;

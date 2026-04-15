@@ -231,11 +231,12 @@ impl ServiceBackend for CronBackend {
     fn status(&self, service_name: &str) -> Result<ServiceStatus, Box<dyn std::error::Error>> {
         let pid = self.read_pid(service_name)?;
         let running = pid.map(|p| self.is_running(p)).unwrap_or(false);
+        let enabled = self.is_enabled(service_name).unwrap_or(false);
 
         Ok(ServiceStatus {
             running,
             pid,
-            enabled: false,
+            enabled,
         })
     }
 

@@ -101,7 +101,7 @@ WantedBy=multi-user.target
             config_dir
                 .join("systemd")
                 .join("user")
-                .join("htbox-my.service")
+                .join(format!("htbox-{}.service", service_name))
         } else {
             PathBuf::from(format!(
                 "/etc/systemd/system/htbox-{}.service",
@@ -258,10 +258,12 @@ impl ServiceBackend for SystemdBackend {
             }
         }
 
+        let enabled = self.is_enabled(service_name).unwrap_or(false);
+
         Ok(ServiceStatus {
             running,
             pid,
-            enabled: false,
+            enabled,
         })
     }
 
@@ -273,5 +275,10 @@ impl ServiceBackend for SystemdBackend {
             .output()?;
 
         Ok(String::from_utf8_lossy(&output.stdout).contains("enabled"))
+    }
+
+    fn install_unit(&self, service_name: &str) -> Result<(), Box<dyn std::error::Error>> {
+        let service_config = crate::config::ServiceConfig::load(service_name)?;
+        self.install_unit(service_name, &service_config)
     }
 }
