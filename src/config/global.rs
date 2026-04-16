@@ -3,6 +3,7 @@ use std::path::PathBuf;
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Config {
+    pub version: Option<String>,
     pub general: Option<GeneralConfig>,
     pub backend: Option<BackendConfig>,
     pub logging: Option<LoggingConfig>,
@@ -35,6 +36,7 @@ pub struct EnvConfig {
 impl Default for Config {
     fn default() -> Self {
         Config {
+            version: Some("1.0.0".to_string()),
             general: Some(GeneralConfig {
                 user: None,
                 work_dir: None,
@@ -53,7 +55,23 @@ impl Default for Config {
 }
 
 impl Config {
+    pub fn is_initialized(&self) -> bool {
+        self.version.is_some()
+    }
+
     pub fn load() -> Result<Self, Box<dyn std::error::Error>> {
+        let config_path = Self::config_path()?;
+
+        if !config_path.exists() {
+            return Err("htbox 未初始化，请先运行 htbox init".into());
+        }
+
+        let content = std::fs::read_to_string(&config_path)?;
+        let config: Config = toml::from_str(&content)?;
+        Ok(config)
+    }
+
+    pub fn load_or_default() -> Result<Self, Box<dyn std::error::Error>> {
         let config_path = Self::config_path()?;
 
         if !config_path.exists() {

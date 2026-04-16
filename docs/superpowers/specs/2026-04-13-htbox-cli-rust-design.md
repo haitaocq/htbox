@@ -26,6 +26,9 @@
 ## 2 CLI 命令结构
 
 ```
+htbox init                    # 初始化配置（交互式）
+htbox init --reset           # 重置配置
+
 htbox service <command>     # 服务管理
   start <name>               # 立即启动服务进程
   stop <name>                # 停止服务进程
