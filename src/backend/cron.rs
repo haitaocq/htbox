@@ -54,12 +54,12 @@ impl CronBackend {
         let logs_dir = service_dir.join("logs");
         std::fs::create_dir_all(&logs_dir)?;
 
-        let script_path = service_dir.join("script.sh");
+        let runner_path = service_dir.join("runner.sh");
         let stdout_log = logs_dir.join("stdout.log");
         let stderr_log = logs_dir.join("stderr.log");
 
         let mut cmd = Command::new("nohup");
-        cmd.arg(&script_path)
+        cmd.arg(&runner_path)
             .arg(format!(">> {}", stdout_log.display()))
             .arg(format!("2>> {}", stderr_log.display()))
             .arg("&")
@@ -107,7 +107,7 @@ impl CronBackend {
 
     pub fn onetime_enable(&self, service_name: &str) -> Result<(), Box<dyn std::error::Error>> {
         let service_dir = self.service_dir(service_name)?;
-        let script_path = service_dir.join("script.sh");
+        let runner_path = service_dir.join("runner.sh");
         let logs_dir = service_dir.join("logs");
 
         let stdout_log = logs_dir.join("stdout.log");
@@ -128,7 +128,7 @@ impl CronBackend {
         if !lines.iter().any(|l| l.contains(&marker)) {
             let job = format!(
                 "@reboot {} >> {} 2>> {}",
-                script_path.display(),
+                runner_path.display(),
                 stdout_log.display(),
                 stderr_log.display()
             );

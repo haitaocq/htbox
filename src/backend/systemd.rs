@@ -70,7 +70,7 @@ WantedBy=multi-user.target
                 .unwrap_or_default(),
             service_dir.display(),
             service_config.env_file_path()?.display(),
-            service_config.script_path()?.display(),
+            service_dir.join("wrapper.sh").display(),
             if is_onetime {
                 format!("RemainAfterExit={}", remain_after_exit)
             } else {
@@ -242,13 +242,22 @@ impl ServiceBackend for SystemdBackend {
             .arg(self.service_name(service_name))
             .output()?;
 
+        if !output.status.success() {
+            return Ok(ServiceStatus {
+                running: false,
+                pid: None,
+                enabled: false,
+            });
+        }
+
         let output_str = String::from_utf8_lossy(&output.stdout);
         let mut running = false;
         let mut pid = None;
 
         for line in output_str.lines() {
             if line.starts_with("ActiveState=") {
-                running = line.contains("active");
+                let state = line.trim_start_matches("ActiveState=");
+                running = state == "active" || state == "activating";
             }
             if line.starts_with("MainPID=") {
                 let pid_str = line.trim_start_matches("MainPID=");
