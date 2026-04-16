@@ -7,6 +7,9 @@ on:
       - 'v*'
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -46,6 +49,7 @@ jobs:
         with:
           files: ./dist/htbox
           name: ${{ github.ref_name }}
+          generate_release_notes: true
           body: |
             自动构建版本 (静态链接)
             
