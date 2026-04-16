@@ -3,6 +3,8 @@ name: Build and Release
 on:
   push:
     branches: [master]
+    tags:
+      - 'v*'
   workflow_dispatch:
 
 jobs:
@@ -30,6 +32,7 @@ jobs:
 
   release:
     needs: build
+    if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
     steps:
       - name: Download Artifact
@@ -43,7 +46,7 @@ jobs:
         with:
           files: ./dist/htbox
           generate_release_notes: true
-          name: htbox latest build
+          name: ${{ github.ref_name }}
           body: |
             自动构建版本 (静态链接)
             
