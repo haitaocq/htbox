@@ -45,7 +45,6 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: ./dist/htbox
-          generate_release_notes: true
           name: ${{ github.ref_name }}
           body: |
             自动构建版本 (静态链接)
