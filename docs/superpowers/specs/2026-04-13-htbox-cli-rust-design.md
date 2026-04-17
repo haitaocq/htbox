@@ -103,13 +103,16 @@ htbox --version              # 版本信息
 ├── wrapper.sh            # Wrapper 脚本（自动生成，加载环境变量后 exec runner.sh）
 ├── runner.sh             # 业务脚本（用户编辑）
 ├── .env                   # 服务专属环境变量
-├── run/                   # 运行时目录（PID 文件）
+├── run/                   # 运行时目录（PID 文件，cron 后端使用）
+│   └── pid               # PID 文件
 └── logs/                  # 日志目录
     ├── stdout.log
     └── stderr.log
 ```
 
-> **注意**：wrapper.sh 和 runner.sh 由 htbox 自动生成。用户编辑 runner.sh 添加业务逻辑。
+> **注意**：
+> - wrapper.sh 和 runner.sh 由 htbox 自动生成。用户编辑 runner.sh 添加业务逻辑。
+> - run/ 目录仅在使用 cron 后端时需要，用于存储 PID 文件
 
 ### 4.2 service.toml 格式
 
@@ -502,6 +505,8 @@ crontab /tmp/crontab.tmp
 │   └── onetime-2.job
 └── crontab.backup           # 备份原始 crontab
 ```
+
+> **注意**：每个服务的 `run/pid` 文件由 cron 后端自动管理，用于跟踪进程状态。
 
 ## 8 状态查询设计
 
