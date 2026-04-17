@@ -133,15 +133,15 @@ pub fn run_init(reset: bool, force: bool) -> std::result::Result<(), Box<dyn std
     let content = std::fs::read_to_string(&global_env_path)?;
     let mut new_content = String::new();
     for line in content.lines() {
-        if line.starts_with("HTBOX_TIMEZONE=") {
-            new_content.push_str(&format!("HTBOX_TIMEZONE={}", timezone));
+        if line.starts_with("TZ=") {
+            new_content.push_str(&format!("TZ={}", timezone));
         } else {
             new_content.push_str(line);
         }
         new_content.push('\n');
     }
-    if !content.contains("HTBOX_TIMEZONE=") {
-        new_content.push_str(&format!("HTBOX_TIMEZONE={}\n", timezone));
+    if !content.contains("TZ=") {
+        new_content.push_str(&format!("TZ={}\n", timezone));
     }
     std::fs::write(&global_env_path, new_content)?;
 

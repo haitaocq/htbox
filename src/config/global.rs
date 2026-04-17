@@ -107,6 +107,7 @@ impl Config {
             let home = dirs::home_dir()
                 .map(|h| h.display().to_string())
                 .unwrap_or_else(|| "/root".to_string());
+            let timezone = "Asia/Shanghai";
             std::fs::write(
                 global_env_path,
                 format!(
@@ -120,7 +121,7 @@ impl Config {
 HTBOX_HOME={}\n\
 HTBOX_LOG_DIR={}/logs\n\
 HTBOX_SERVICES_DIR={}/services\n\
-HTBOX_TIMEZONE=Asia/Shanghai\n\
+TZ={}\n\
 HOME={}\n\
 PATH={}\n\
 #\n\
@@ -131,6 +132,7 @@ PATH={}\n\
                     htbox_dir.display(),
                     htbox_dir.display(),
                     htbox_dir.display(),
+                    timezone,
                     home,
                     default_path
                 ),
